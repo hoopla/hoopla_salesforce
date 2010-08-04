@@ -79,14 +79,12 @@ module HooplaSalesforce
       puts response[:messages].map{ |m| m[:problem] }.join("\n")
     end
 
-    def retrieve
+    def retrieve(request)
       login
 
       response = metaclient.retrieve do |soap, wsse|
         soap.header = @header
-        soap.body = { "wsdl:retrieveRequest" => { "wsdl:unpackaged" => { "wsdl:types" => [
-          { "wsdl:members" => "*", "wsdl:name" => "CustomApplication" }
-        ] } } }
+        soap.body = { "wsdl:retrieveRequest" => request }
       end.to_hash[:retrieve_response][:result]
  
       puts "Retrieve requested, awaiting completion of job #{response[:id]}..." 
