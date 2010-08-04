@@ -7,7 +7,7 @@ module HooplaSalesforce
       attr_accessor :src
 
       # The location of the zip file generated for deployment. Defaults to 'deploy.zip'
-      attr_accessor :deployfile
+      attr_accessor :deploy_file
 
       def initialize(name=:deploy)
         @deploy_file = "deploy.zip"
@@ -20,14 +20,14 @@ module HooplaSalesforce
         task name do
           make_zipfile
           require 'hoopla_salesforce/deployer'
-          HooplaSalesforce::Deployer.new(username, password, token, enterprise_wsdl, metadata_wsdl).deploy(deployfile)
+          HooplaSalesforce::Deployer.new(username, password, token, enterprise_wsdl, metadata_wsdl).deploy(deploy_file)
         end
       end
 
       def make_zipfile
         require 'zip/zip'
-        rm_f deployfile
-        Zip::ZipFile.open(deployfile, Zip::ZipFile::CREATE) do |zip|
+        rm_f deploy_file
+        Zip::ZipFile.open(deploy_file, Zip::ZipFile::CREATE) do |zip|
           Dir["#{src}/**/*"].each do |file|
             zip.add(file, file)
           end 
