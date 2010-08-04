@@ -1,44 +1,18 @@
-require 'rake'
-require 'rake/tasklib'
-
-require 'hoopla_salesforce'
+require 'hoopla_salesforce/rake/base_task'
 
 module HooplaSalesforce
   module Rake
-    class DeployTask < ::Rake::TaskLib
-      # The name for the task and any dependencies. Defaults to 'deploy'.
-      attr_accessor :name
-     
-      # Your salesforce username 
-      attr_accessor :username
-
-      # Your salesforce password
-      attr_accessor :password
-
-      # Your salesforce API token, which will get concatenated onto your password.
-      attr_accessor :token
-
+    class DeployTask < BaseTask
       # Your project root. Defaults to 'src'
       attr_accessor :src
-
-      # Path to your enterprise WSDL. Defaults to value of HooplaSalesforce.enterprise_wsdl.
-      attr_accessor :enterprise_wsdl
-
-      # Path to your metadata WSDL. Defaults to value of HooplaSalesforce.metadata_wsdl.
-      attr_accessor :metadata_wsdl
 
       # The location of the zip file generated for deployment. Defaults to 'deploy.zip'
       attr_accessor :deployfile
 
       def initialize(name=:deploy)
-        @name = name
-        @deployfile = "deploy.zip"
+        @deploy_file = "deploy.zip"
         @src = 'src'
-        @enterprise_wsdl = HooplaSalesforce.enterprise_wsdl
-        @metadata_wsdl = HooplaSalesforce.metadata_wsdl
-
-        yield self if block_given?
-        define
+        super
       end
 
       def define
