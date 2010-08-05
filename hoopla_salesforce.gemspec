@@ -7,6 +7,7 @@ $spec = Gem::Specification.new do |s|
   s.description = "No really, these helpers are awesome"
 
   s.add_dependency("hoopla-savon", ">= 0.7.6")
+  s.add_dependency("rubyzip",      ">= 0.9.4")
 
   s.files    = Dir["README.md", "lib/**/*.rb"]
   s.has_rdoc = true
