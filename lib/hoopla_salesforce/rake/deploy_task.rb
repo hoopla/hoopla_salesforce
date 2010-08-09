@@ -45,7 +45,25 @@ module HooplaSalesforce
           make_resources
           make_zipfile
           require 'hoopla_salesforce/deployer'
-          HooplaSalesforce::Deployer.new(username, password, token, enterprise_wsdl, metadata_wsdl).deploy(deploy_file)
+          HooplaSalesforce::Deployer.new(username, password, token, enterprise_wsdl, metadata_wsdl).deploy(deploy_file, deploy_options)
+        end
+      end
+
+      def deploy_options
+        testNames = Dir["#{src}/classes/*.cls"].inject([]) do |names, f|
+          body = File.read(f)
+          if body =~ /(testMethod|@isTest)/ && match = body.match(/\bclass\s+(\w+)\s*\{\s*/)
+            names << match[1]
+          else
+            names
+          end
+        end
+
+        if testNames.empty?
+          { "wsdl:runAllTests" => true }
+        else
+          testNames.map! { |n| namespace.sub(/__$/, '.') + n } if namespace
+          { "wsdl:runTests" => testNames }
         end
       end
 

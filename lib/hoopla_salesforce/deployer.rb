@@ -45,7 +45,7 @@ module HooplaSalesforce
       @header = { "wsdl:SessionHeader" => { "wsdl:sessionId" => response[:session_id] } }
     end
 
-    def deploy(zipfile)
+    def deploy(zipfile, options)
       login
 
       data = Base64.encode64(File.read(zipfile))
@@ -53,9 +53,7 @@ module HooplaSalesforce
       response = metaclient.deploy do |soap, wsse|
         soap.header = header
         soap.body = { "wsdl:ZipFile" => data,
-                      "wsdl:DeployOptions" => {
-                         "wsdl:runAllTests" => true
-                      },
+                      "wsdl:DeployOptions" => options,
                       :order! => ['wsdl:ZipFile', 'wsdl:DeployOptions']
                     }
       end.to_hash[:deploy_response][:result]
