@@ -67,7 +67,7 @@ module HooplaSalesforce
       passes      = test_result[:num_tests_run].to_i - failures
       print "#{indent}Passes: #{green}#{passes}#{end_color} "
       print "Failures: #{red}#{failures}#{end_color} "
-      puts  "Duration: #{test_result[:total_time]} ms"
+      puts  "Duration: #{test_result[:total_time]}"
       puts
 
       # :failures is only an array if we have more than 1. Fun...
