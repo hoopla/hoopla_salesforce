@@ -20,6 +20,12 @@ module HooplaSalesforce
       "\e[0m"
     end
 
+    def sanitize(data)
+      return data if data.is_a? Array
+      return [data] if data
+      []
+    end
+
     def report
       indent            = "  "
       updated_files     = []
@@ -52,7 +58,7 @@ module HooplaSalesforce
 
       puts
       puts "Updated files:"
-      puts updated_files.join("\n")
+      puts updated_files.uniq.join("\n")
       puts
 
       puts "Test results:"
@@ -65,7 +71,7 @@ module HooplaSalesforce
       puts
 
       # :failures is only an array if we have more than 1. Fun...
-      [test_result[:failures]].compact.flatten.each do |failure|
+      sanitize(test_result[:failures]).each do |failure|
         message = "#{indent}#{red}#{failure[:name]}.#{failure[:method_name]}: #{failure[:message]}\n"
         message += failure[:stack_trace].split("\n").map{ |l| indent * 2 + l }.join("\n")
         message += end_color
@@ -78,7 +84,7 @@ module HooplaSalesforce
         puts
       end
 
-      (test_result[:code_coverage_warnings] || []).each do |warning|
+      sanitize(test_result[:code_coverage_warnings]).each do |warning|
         coverage_warnings << "#{indent}#{warning[:name]}: #{warning[:message]}"
       end
       
