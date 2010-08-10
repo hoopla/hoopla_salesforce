@@ -78,7 +78,7 @@ module HooplaSalesforce
         puts
       end
 
-      test_result[:code_coverage_warnings].each do |warning|
+      (test_result[:code_coverage_warnings] || []).each do |warning|
         coverage_warnings << "#{indent}#{warning[:name]}: #{warning[:message]}"
       end
       
