@@ -1,6 +1,6 @@
 require 'base64'
 require 'savon'
-require 'pp'
+require 'hoopla_salesforce/text_reporter'
 
 Savon::Request.logger = Logger.new(STDOUT)
 Savon::Request.logger.level = Logger::WARN
@@ -71,10 +71,11 @@ module HooplaSalesforce
         soap.body = { "wsdl:asyncProcessId" => response[:id] }
       end.to_hash[:check_deploy_status_response][:result]
 
-      pp response
+      error_out unless TextReporter.new(response).report
+    end
 
-      puts response[:run_test_result][:code_coverage_warnings][:message] rescue nil
-      puts response[:messages].map{ |m| m[:problem] }.join("\n")
+    def error_out
+      raise "Deployment errors. See report for details."
     end
 
     def retrieve(request)
