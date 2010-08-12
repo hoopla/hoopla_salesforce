@@ -33,7 +33,7 @@ module HooplaSalesforce
       test_failures     = []
       coverage_warnings = []
 
-      result[:messages].each do |message|
+      sanitize(result[:messages]).each do |message|
         if message[:success]
           status = " "
           status = "U" if message[:changed]
