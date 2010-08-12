@@ -1,4 +1,5 @@
 require 'hoopla_salesforce/rake/base_task'
+require 'hoopla_salesforce/ext/string'
 
 module HooplaSalesforce
   module Rake
@@ -43,6 +44,7 @@ module HooplaSalesforce
         task name do
           process_source
           make_resources
+          make_meta_xmls
           make_zipfile
           require 'hoopla_salesforce/deployer'
           HooplaSalesforce::Deployer.new(username, password, token, enterprise_wsdl, metadata_wsdl).deploy(deploy_file, deploy_options)
@@ -64,6 +66,27 @@ module HooplaSalesforce
         else
           testNames.map! { |n| namespace.sub(/__$/, '.') + n } if namespace
           { "wsdl:runTests" => testNames }
+        end
+      end
+
+      def api_version
+        return @api_version if @api_version
+        File.read("#{processed_src}/package.xml") =~ /<version>(.*)<\/version>/i
+        @api_version = $1
+      end
+
+      def make_meta_xmls
+        Dir["#{processed_src}/classes/*.cls"].each do |klass|
+          meta = "#{klass}-meta.xml"
+          next if File.exist?(meta)
+          File.open(meta, 'w') do |f|
+            f.print <<-EOS.margin
+              <?xml version="1.0" encoding="UTF-8"?>
+              <ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
+                <apiVersion>#{api_version}</apiVersion>
+              </ApexClass>
+            EOS
+          end
         end
       end
 
