@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'hoopla_salesforce/ext/string'
 
 module HooplaSalesforce
   class Skeleton
@@ -28,7 +29,7 @@ module HooplaSalesforce
 
     def make_package_xml
       File.open("#{directory}/src/package.xml", 'w') do |pkg|
-        pkg.print <<-EOS.gsub(' ' * 10, '')
+        pkg.print <<-EOS.margin
           <?xml version="1.0" encoding="UTF-8"?>
           <Package xmlns="http://soap.sforce.com/2006/04/metadata">
             <fullName></fullName>
@@ -79,7 +80,7 @@ module HooplaSalesforce
 
     def make_rakefile
       File.open("#{directory}/Rakefile", 'w') do |rakefile|
-        rakefile.print <<-EOS.gsub(' ' * 10, '')
+        rakefile.print <<-EOS.margin
           require 'hoopla_salesforce/rake'
           
           HooplaSalesforce.enterprise_wsdl = "lib/enterprise.xml"
@@ -87,9 +88,10 @@ module HooplaSalesforce
           
           namespace :deploy do
             HooplaSalesforce::Rake::DeployTask.new(:development) do |t|
-              t.username = "you@development.org"
-              t.password = "yourpassword"
-              t.token    = "your security token"
+              t.username  = "you@development.org"
+              t.password  = "yourpassword"
+              t.token     = "your security token"
+              t.namespace = "" 
             end
           end
         EOS
@@ -98,7 +100,7 @@ module HooplaSalesforce
 
     def make_gitignore
       File.open("#{directory}/.gitignore", 'w') do |gitignore|
-        gitignore.print <<-EOS.gsub(' ' * 10, '')
+        gitignore.print <<-EOS.margin
           src-processed
           deploy.zip
         EOS
