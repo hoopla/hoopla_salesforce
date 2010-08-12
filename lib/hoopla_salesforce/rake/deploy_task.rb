@@ -78,7 +78,7 @@ module HooplaSalesforce
       def make_meta(glob)
         Dir["#{processed_src}/#{glob}"].each do |file|
           meta = "#{file}-meta.xml"
-          next if File.exist?(meta)
+          next if file =~ /-meta\.xml$/ || File.exist?(meta)
           File.open(meta, 'w') do |f|
             f.print yield(file)
           end
@@ -103,6 +103,29 @@ module HooplaSalesforce
               <label>#{File.basename(page, '.page')}</label>
             </ApexClass>
           EOS
+        end
+
+        make_meta "documents/**/*" do |doc|
+          if File.directory?(doc)
+            <<-EOS.margin
+              <?xml version="1.0" encoding="UTF-8"?>
+              <DocumentFolder xmlns="http://soap.sforce.com/2006/04/metadata">
+                <name>#{File.basename(doc)}</name>
+                <accessType>Public</accessType>
+                <publicFolderAccess>ReadOnly</publicFolderAccess>
+              </DocumentFolder>
+            EOS
+          else
+            <<-EOS.margin
+              <?xml version="1.0" encoding="UTF-8"?>
+              <Document xmlns="http://soap.sforce.com/2006/04/metadata">
+                <internalUseOnly>false</internalUseOnly>
+                <name>#{File.basename(doc)}</name>
+                <public>true</public>
+                <description>A document</description>
+              </Document>
+            EOS
+          end
         end
       end
 
