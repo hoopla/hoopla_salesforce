@@ -75,18 +75,34 @@ module HooplaSalesforce
         @api_version = $1
       end
 
-      def make_meta_xmls
-        Dir["#{processed_src}/classes/*.cls"].each do |klass|
-          meta = "#{klass}-meta.xml"
+      def make_meta(glob)
+        Dir["#{processed_src}/#{glob}"].each do |file|
+          meta = "#{file}-meta.xml"
           next if File.exist?(meta)
           File.open(meta, 'w') do |f|
-            f.print <<-EOS.margin
-              <?xml version="1.0" encoding="UTF-8"?>
-              <ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
-                <apiVersion>#{api_version}</apiVersion>
-              </ApexClass>
-            EOS
+            f.print yield(file)
           end
+        end
+      end
+
+      def make_meta_xmls
+        make_meta "classes/*.cls" do |klass|
+          <<-EOS.margin
+            <?xml version="1.0" encoding="UTF-8"?>
+            <ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
+              <apiVersion>#{api_version}</apiVersion>
+            </ApexClass>
+          EOS
+        end
+
+        make_meta "pages/*.page" do |page|
+          <<-EOS.margin
+            <?xml version="1.0" encoding="UTF-8"?>
+            <ApexClass xmlns="http://soap.sforce.com/2006/04/metadata">
+              <apiVersion>#{api_version}</apiVersion>
+              <label>#{File.basename(page, '.page')}</label>
+            </ApexClass>
+          EOS
         end
       end
 
