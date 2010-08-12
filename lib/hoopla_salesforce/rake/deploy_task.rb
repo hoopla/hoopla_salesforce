@@ -127,6 +127,17 @@ module HooplaSalesforce
             EOS
           end
         end
+
+        make_meta "staticresources/*.resource" do |resource|
+          <<-EOS.margin
+            <?xml version="1.0" encoding="UTF-8"?>
+            <StaticResource xmlns="http://soap.sforce.com/2006/04/metadata">
+              <cacheControl>Private</cacheControl>
+              <contentType>application/zip</contentType>
+              <description>A static resource</description>
+            </StaticResource>
+          EOS
+        end
       end
 
       def make_resources
@@ -145,7 +156,8 @@ module HooplaSalesforce
             end
           end
 
-          cp "#{f}.resource-meta.xml", "#{resourcefile}-meta.xml"
+          source_meta = "#{f}.resource-meta.xml"
+          cp source_meta, "#{resourcefile}-meta.xml" if File.exist?(source_meta)
         end
       end
 
