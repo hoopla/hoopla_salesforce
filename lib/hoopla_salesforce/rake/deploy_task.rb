@@ -1,5 +1,6 @@
 require 'hoopla_salesforce/rake/base_task'
 require 'hoopla_salesforce/ext/string'
+require 'hoopla_salesforce/template_processor'
 
 module HooplaSalesforce
   module Rake
@@ -30,12 +31,20 @@ module HooplaSalesforce
       # Defaults to #{src}-processed
       attr_accessor :processed_src
 
+      # Which file to load before processing templates. Default: lib/template_helper.rb
+      # To have this file inject methods into the HooplaSalesforce::TemplateProcessor,
+      # be sure to include your module in HooplaSalesforce::TemplateProcessor::VisualForce or 
+      # HooplaSalesforce::TemplateProcessor::TestPage at the bottom of your template_helper
+      # file.
+      attr_accessor :template_helper
+
       def initialize(name=:deploy)
-        @deploy_file = "deploy.zip"
-        @src = 'src'
-        @namespace = nil
+        @deploy_file     = "deploy.zip"
+        @src             = 'src'
+        @namespace       = nil
+        @template_helper = 'lib/template_helper.rb'
         super
-        @namespace += "__" if @namespace
+        @namespace      += "__" if @namespace
         @processed_src ||= "#{src}-processed" 
       end
 
@@ -44,6 +53,7 @@ module HooplaSalesforce
         task name do
           process_source
           make_resources
+          make_pages
           make_meta_xmls
           make_zipfile
           require 'hoopla_salesforce/deployer'
@@ -73,6 +83,15 @@ module HooplaSalesforce
         return @api_version if @api_version
         File.read("#{processed_src}/package.xml") =~ /<version>(.*)<\/version>/i
         @api_version = $1
+      end
+
+      def make_pages
+        require template_helper if File.exist?(template_helper)
+
+        Dir["#{processed_src}/pages/*.page.erb"].each do |page_template|
+          TemplateProcessor.new(processed_src, page_template)
+          rm page_template
+        end
       end
 
       def make_meta(glob)
