@@ -16,14 +16,22 @@ module HooplaSalesforce
     end
 
     class VisualForce < Base
+      def javascript_include_tag(*files)
+        files.map do |file|
+          resource, file = file.split('/', 2)
+          file += ".js" unless file =~ /\.js$/
+          %Q|<script type="text/javascript" src="{!URLFOR($Resource.#{resource}, '/#{file}')}"></script>|
+        end.join("\n")
+      end
+
       def as_json_array(collection, var)
         <<-EOS.margin
-          <apex:repeat value="{!#{collection}}" var="#{var}" rows="1">
+          [<apex:repeat value="{!#{collection}}" var="#{var}" rows="1">
             #{send("#{var}_json")}
           </apex:repeat>
           <apex:repeat value="{!#{collection}}" var="#{var}" first="1">
             ,#{send("#{var}_json")}
-          </apex:repeat>
+          </apex:repeat>]
         EOS
       end
 
