@@ -13,15 +13,31 @@ module HooplaSalesforce
           f.print template.result(binding)
         end
       end
+
+      def each_resource_file(files, extension)
+        files.map do |file|
+          resource, file = file.split('/', 2)
+          file += ".#{extension}" unless extension =~ /\.#{extension}$/
+          yield resource, file
+        end.join("\n")
+      end
     end
 
     class VisualForce < Base
+      def page(opts={})
+        %Q|Implement page in template_processor.rb|
+      end
+
+      def stylesheet_include_tag(*files)
+        each_resource_file(files, "css") do |resource, file|
+          %Q|Implement stylesheet_include_tag in template_processor.rb|
+        end
+      end
+
       def javascript_include_tag(*files)
-        files.map do |file|
-          resource, file = file.split('/', 2)
-          file += ".js" unless file =~ /\.js$/
+        each_resource_file(files, "js") do |resource, file|
           %Q|<script type="text/javascript" src="{!URLFOR($Resource.#{resource}, '/#{file}')}"></script>|
-        end.join("\n")
+        end
       end
 
       def as_json_array(collection, var)
@@ -41,14 +57,42 @@ module HooplaSalesforce
     end
 
     class TestPage < Base
+      def page(opts={})
+        <<-EOS.margin
+          <html>
+            <head>
+              <title>Test Page: #{opts[:controller]}</title>
+            </head>
+            <body>
+        EOS
+      end
+
+      def end_page
+        <<-EOS.margin
+          </body>
+          </html>
+        EOS
+      end
+
+      def stylesheet_include_tag(*files)
+        each_resource_file(files, "css") do |resource, file|
+          %Q|<link rel="stylesheet" type="text/css" href="../resource/#{resource}/#{file}" />|
+        end
+      end
+
+      def javascript_include_tag(*files)
+        each_resource_file(files, "js") do |resource, file|
+          %Q|<script type="text/javascript" src="../resources/#{resource}/#{file}"></script>|
+        end
+      end
+
+      def as_json_array(collection, var)
+        File.read("fixtures/#{collection}.json")
+      end
+
       def output_file
         "#{src}/pages-test/#{base}.html"
       end
-    end
-
-    def initialize(src, file)
-      VisualForce.new(src, file)
-      #TestPage.new(src, file)
     end
   end
 end

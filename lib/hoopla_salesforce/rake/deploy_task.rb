@@ -25,7 +25,7 @@ module HooplaSalesforce
       # the namespaced package) and a dev org (that does not have one).
       #
       # default - nil
-      attr_accessor :namespace
+      attr_accessor :package_namespace
 
       # The directory in which to store processed source files.
       # Defaults to #{src}-processed
@@ -38,26 +38,45 @@ module HooplaSalesforce
       # file.
       attr_accessor :template_helper
 
-      def initialize(name=:deploy)
-        @deploy_file     = "deploy.zip"
-        @src             = 'src'
-        @namespace       = nil
-        @template_helper = 'lib/template_helper.rb'
+      def initialize(name=:production)
+        @deploy_file       = "deploy.zip"
+        @src               = 'src'
+        @package_namespace = nil
+        @template_helper   = 'lib/template_helper.rb'
         super
-        @namespace      += "__" if @namespace
-        @processed_src ||= "#{src}-processed" 
+        @package_namespace  += "__" if @package_namespace
+        @processed_src     ||= "#{src}-processed" 
       end
 
       def define
-        desc "Deploy to salesforce"
-        task name do
-          process_source
-          make_resources
-          make_pages
-          make_meta_xmls
-          make_zipfile
-          require 'hoopla_salesforce/deployer'
-          HooplaSalesforce::Deployer.new(username, password, token, enterprise_wsdl, metadata_wsdl).deploy(deploy_file, deploy_options)
+        if name.is_a? Hash
+          task_name = name.keys.first
+          dependencies = name[task_name]
+        else
+          task_name = name
+          dependencies = []
+        end
+
+        namespace :hsf do
+          namespace :deploy do
+            desc "Deploy to salesforce"
+            task task_name => dependencies do
+              process_source
+              make_resources
+              make_pages(HooplaSalesforce::TemplateProcessor::VisualForce)
+              make_meta_xmls
+              make_zipfile
+              require 'hoopla_salesforce/deployer'
+              HooplaSalesforce::Deployer.new(username, password, token, enterprise_wsdl, metadata_wsdl).deploy(deploy_file, deploy_options)
+            end
+          end
+
+          desc "Renders any page templates as test pages in #{processed_src}/pages-test"
+          task :testpages => dependencies do
+            process_source
+            mkdir_p "#{processed_src}/pages-test"
+            make_pages(HooplaSalesforce::TemplateProcessor::TestPage)
+          end
         end
       end
 
@@ -74,7 +93,7 @@ module HooplaSalesforce
         if testNames.empty?
           { "wsdl:runAllTests" => true }
         else
-          testNames.map! { |n| namespace.sub(/__$/, '.') + n } if namespace
+          testNames.map! { |n| package_namespace.sub(/__$/, '.') + n } if package_namespace
           { "wsdl:runTests" => testNames }
         end
       end
@@ -85,11 +104,11 @@ module HooplaSalesforce
         @api_version = $1
       end
 
-      def make_pages
+      def make_pages(processor)
         require template_helper if File.exist?(template_helper)
 
         Dir["#{processed_src}/pages/*.page.erb"].each do |page_template|
-          TemplateProcessor.new(processed_src, page_template)
+          processor.new(processed_src, page_template)
           rm page_template
         end
       end
@@ -195,12 +214,12 @@ module HooplaSalesforce
         cp_r src, processed_src
         Dir["#{processed_src}/**/*"].each do |f|
           next if File.directory?(f)
-          system %Q|ruby -i -n -e 'print $_.gsub("__NAMESPACE__", "#{namespace}")' "#{f}"|
+          system %Q|ruby -i -n -e 'print $_.gsub("__NAMESPACE__", "#{package_namespace}")' "#{f}"|
         end
 
-        if namespace
-          clean_namespace = namespace.sub(/__$/, '')
-          system %Q|ruby -i -n -e 'print $_.gsub("#{namespace}", "#{clean_namespace}")' "#{processed_src}/package.xml"|
+        if package_namespace
+          clean_namespace = package_namespace.sub(/__$/, '')
+          system %Q|ruby -i -n -e 'print $_.gsub("#{package_namespace}", "#{clean_namespace}")' "#{processed_src}/package.xml"|
         end
       end
     end
