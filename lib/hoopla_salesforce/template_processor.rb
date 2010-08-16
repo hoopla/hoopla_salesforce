@@ -81,7 +81,7 @@ module HooplaSalesforce
 
       def stylesheet_include_tag(*files)
         each_resource_file(files, "css") do |resource, file|
-          %Q|<link rel="stylesheet" type="text/css" href="../resource/#{resource}/#{file}" />|
+          %Q|<link rel="stylesheet" type="text/css" href="../resources/#{resource}/#{file}" />|
         end
       end
 
