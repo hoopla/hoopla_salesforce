@@ -65,6 +65,7 @@ module HooplaSalesforce
       test_result = result[:run_test_result]
       failures    = test_result[:num_failures].to_i
       passes      = test_result[:num_tests_run].to_i - failures
+      passes      = 0 if passes < 0
       print "#{indent}Passes: #{green}#{passes}#{end_color} "
       print "Failures: #{red}#{failures}#{end_color} "
       puts  "Duration: #{test_result[:total_time]}"
@@ -73,7 +74,7 @@ module HooplaSalesforce
       # :failures is only an array if we have more than 1. Fun...
       sanitize(test_result[:failures]).each do |failure|
         message = "#{indent}#{red}#{failure[:name]}.#{failure[:method_name]}: #{failure[:message]}\n"
-        message += failure[:stack_trace].split("\n").map{ |l| indent * 2 + l }.join("\n")
+        message += failure[:stack_trace].split("\n").map{ |l| indent * 2 + l }.join("\n") if failure[:stack_trace]
         message += end_color
         test_failures << message
       end
