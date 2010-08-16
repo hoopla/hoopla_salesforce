@@ -20,10 +20,12 @@ module HooplaSalesforce
       end
 
       def define
-        desc "Retrieve all apex classes from salesforce.com"
-        task name do
-          require 'hoopla_salesforce/deployer'
-          HooplaSalesforce::Deployer.new(username, password, token, enterprise_wsdl, metadata_wsdl).retrieve(request)
+        namespace :hsf do
+          desc "Retrieve all apex classes from salesforce.com"
+          task name do
+            require 'hoopla_salesforce/deployer'
+            HooplaSalesforce::Deployer.new(username, password, token, enterprise_wsdl, metadata_wsdl).retrieve(request)
+          end
         end
       end
     end
