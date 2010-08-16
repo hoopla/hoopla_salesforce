@@ -63,7 +63,10 @@ module HooplaSalesforce
             task task_name => dependencies do
               process_source
               make_resources
-              make_pages(HooplaSalesforce::TemplateProcessor::VisualForce)
+              make_pages do |template|
+                HooplaSalesforce::TemplateProcessor::VisualForce.new(processed_src, template)
+                rm template.sub(src, processed_src)
+              end
               make_meta_xmls
               make_zipfile
               require 'hoopla_salesforce/deployer'
@@ -73,9 +76,10 @@ module HooplaSalesforce
 
           desc "Renders any page templates as test pages in #{processed_src}/pages-test"
           task :testpages => dependencies do
-            process_source
-            mkdir_p "#{processed_src}/pages-test"
-            make_pages(HooplaSalesforce::TemplateProcessor::TestPage)
+            mkdir_p "#{src}/pages-test"
+            make_pages do |template|
+              HooplaSalesforce::TemplateProcessor::TestPage.new(src, template)
+            end
           end
         end
       end
@@ -104,12 +108,11 @@ module HooplaSalesforce
         @api_version = $1
       end
 
-      def make_pages(processor)
+      def make_pages
         require template_helper if File.exist?(template_helper)
 
-        Dir["#{processed_src}/pages/*.page.erb"].each do |page_template|
-          processor.new(processed_src, page_template)
-          rm page_template
+        Dir["#{src}/pages/*.page.erb"].each do |template|
+          yield template
         end
       end
 
