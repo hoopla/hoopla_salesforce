@@ -25,12 +25,17 @@ module HooplaSalesforce
 
     class VisualForce < Base
       def page(opts={})
-        %Q|Implement page in template_processor.rb|
+        params = opts.map { |key, val| %Q|#{key}="#{val}"| }.join(" ")
+        "<apex:page #{params}>"
+      end
+
+      def end_page
+        "</apex:page>"
       end
 
       def stylesheet_include_tag(*files)
         each_resource_file(files, "css") do |resource, file|
-          %Q|Implement stylesheet_include_tag in template_processor.rb|
+          %Q|<apex:stylesheet value="{!URLFOR($Resource.#{resource}, '/#{file}')}" />|
         end
       end
 
