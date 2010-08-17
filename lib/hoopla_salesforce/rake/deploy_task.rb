@@ -179,6 +179,16 @@ module HooplaSalesforce
             </StaticResource>
           EOS
         end
+
+        make_meta "triggers/*.trigger" do |trigger|
+          <<-EOS.margin
+            <?xml version="1.0" encoding="UTF-8"?>
+            <ApexTrigger xmlns="http://soap.sforce.com/2006/04/metadata">
+                <apiVersion>#{api_version}</apiVersion>
+                <status>Active</status>
+            </ApexTrigger>
+          EOS
+        end
       end
 
       def make_resources
