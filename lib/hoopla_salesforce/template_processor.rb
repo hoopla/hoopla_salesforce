@@ -92,7 +92,7 @@ module HooplaSalesforce
       end
 
       def as_json_array(collection, var)
-        File.read("fixtures/#{collection}.json")
+        send("#{var}_json")
       end
 
       def output_file
