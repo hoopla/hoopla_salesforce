@@ -1,6 +1,7 @@
 require 'hoopla_salesforce/rake/base_task'
 require 'hoopla_salesforce/ext/string'
 require 'hoopla_salesforce/template_processor'
+require 'hoopla_salesforce/utils'
 
 module HooplaSalesforce
   module Rake
@@ -13,6 +14,8 @@ module HooplaSalesforce
     #   - Zips up any folders found in src/resources as src/staticresources/#{folder}.resource.
     #     This allows you to only keep the raw assets in your project
     class DeployTask < BaseTask
+      include Utils
+
       # Your project root. Defaults to 'src'
       attr_accessor :src
 
@@ -58,19 +61,24 @@ module HooplaSalesforce
         end
 
         namespace :hsf do
+          namespace :undeploy do
+            desc "Undeploy all components in #{src} from salesforce"
+            task task_name => dependencies do
+              process_source
+              require 'hoopla_salesforce/package_generator'
+              PackageGenerator.new(processed_src, api_version).generate_destructive_changes
+              make_zipfile
+              deploy_zipfile
+            end
+          end
+
           namespace :deploy do
             desc "Deploy to salesforce"
             task task_name => dependencies do
               process_source
-              make_resources
-              make_pages do |template|
-                HooplaSalesforce::TemplateProcessor::VisualForce.new(processed_src, template)
-                rm template.sub(src, processed_src)
-              end
               make_meta_xmls
               make_zipfile
-              require 'hoopla_salesforce/deployer'
-              HooplaSalesforce::Deployer.new(username, password, token, enterprise_wsdl, metadata_wsdl).deploy(deploy_file, deploy_options)
+              deploy_zipfile
             end
           end
 
@@ -87,8 +95,8 @@ module HooplaSalesforce
       def deploy_options
         testNames = Dir["#{src}/classes/*.cls"].inject([]) do |names, f|
           body = File.read(f)
-          if body =~ /(testMethod|@isTest)/ && match = body.match(/\bclass\s+(\w+)\s*\{\s*/)
-            names << match[1]
+          if body =~ /(testMethod|@isTest)/ && name = extract_class_name(body)
+            names << name
           else
             names
           end
@@ -104,7 +112,7 @@ module HooplaSalesforce
 
       def api_version
         return @api_version if @api_version
-        File.read("#{processed_src}/package.xml") =~ /<version>(.*)<\/version>/i
+        File.read("#{src}/package.xml") =~ /<version>(.*)<\/version>/i
         @api_version = $1
       end
 
@@ -222,6 +230,11 @@ module HooplaSalesforce
         end
       end
 
+      def deploy_zipfile
+        require 'hoopla_salesforce/deployer'
+        HooplaSalesforce::Deployer.new(username, password, token, enterprise_wsdl, metadata_wsdl).deploy(deploy_file, deploy_options)
+      end
+
       def process_source
         rm_rf processed_src
         cp_r src, processed_src
@@ -233,6 +246,12 @@ module HooplaSalesforce
         if package_namespace
           clean_namespace = package_namespace.sub(/__$/, '')
           system %Q|ruby -i -n -e 'print $_.gsub("#{package_namespace}", "#{clean_namespace}")' "#{processed_src}/package.xml"|
+        end
+
+        make_resources
+        make_pages do |template|
+          HooplaSalesforce::TemplateProcessor::VisualForce.new(processed_src, template)
+          rm template.sub(src, processed_src)
         end
       end
     end
