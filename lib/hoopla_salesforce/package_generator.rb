@@ -1,4 +1,5 @@
 require 'hoopla_salesforce/utils'
+require 'nokogiri'
 
 module HooplaSalesforce
   class PackageGenerator
@@ -15,7 +16,8 @@ module HooplaSalesforce
     end
 
     def supported_types
-      %w(apex_class apex_page custom_tab custom_application apex_trigger)
+      %w(apex_class apex_page custom_tab custom_application apex_trigger custom_field
+         static_resource)
     end
 
     def map_files(glob, &block)
@@ -51,6 +53,21 @@ module HooplaSalesforce
     def members_for_custom_application
       map_files("applications/*.app") do |app|
         File.read(app).match(/<fullName>([^<]*)<\/fullName>/)[1]
+      end
+    end
+
+    def members_for_custom_field
+      map_files("objects/*.object") do |object|
+        obj_name = File.basename(object, ".object")
+        data = File.read(object)
+        xml_doc = Nokogiri::XML(data)
+        xml_doc.search("fullName").map { |f| [obj_name, f.text].join('.') }
+      end.flatten
+    end
+
+    def members_for_static_resource
+      map_files("staticresources/*.resource") do |resource|
+        File.basename(resource, ".resource")
       end
     end
 
