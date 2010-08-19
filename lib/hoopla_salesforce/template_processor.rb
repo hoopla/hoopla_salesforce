@@ -16,9 +16,8 @@ module HooplaSalesforce
 
       def each_resource_file(files, extension)
         files.map do |file|
-          resource, file = file.split('/', 2)
           file += ".#{extension}" unless extension =~ /\.#{extension}$/
-          yield resource, file
+          yield file
         end.join("\n")
       end
     end
@@ -33,15 +32,20 @@ module HooplaSalesforce
         "</apex:page>"
       end
 
+      def resource_url(file)
+        resource, file = file.split('/', 2)
+        "{!URLFOR($Resource.#{resource}, '/#{file}')}"
+      end
+
       def stylesheet_include_tag(*files)
-        each_resource_file(files, "css") do |resource, file|
-          %Q|<apex:stylesheet value="{!URLFOR($Resource.#{resource}, '/#{file}')}" />|
+        each_resource_file(files, "css") do |file|
+          %Q|<apex:stylesheet value="#{resource_url(file)}" />|
         end
       end
 
       def javascript_include_tag(*files)
-        each_resource_file(files, "js") do |resource, file|
-          %Q|<script type="text/javascript" src="{!URLFOR($Resource.#{resource}, '/#{file}')}"></script>|
+        each_resource_file(files, "js") do |file|
+          %Q|<script type="text/javascript" src="#{resource_url(file)}"></script>|
         end
       end
 
@@ -79,15 +83,19 @@ module HooplaSalesforce
         EOS
       end
 
+      def resource_url(file)
+        "../resources/#{file}"
+      end
+
       def stylesheet_include_tag(*files)
-        each_resource_file(files, "css") do |resource, file|
-          %Q|<link rel="stylesheet" type="text/css" href="../resources/#{resource}/#{file}" />|
+        each_resource_file(files, "css") do |file|
+          %Q|<link rel="stylesheet" type="text/css" href="#{resource_url(file)}" />|
         end
       end
 
       def javascript_include_tag(*files)
-        each_resource_file(files, "js") do |resource, file|
-          %Q|<script type="text/javascript" src="../resources/#{resource}/#{file}"></script>|
+        each_resource_file(files, "js") do |file|
+          %Q|<script type="text/javascript" src="#{resource_url(file)}"></script>|
         end
       end
 
