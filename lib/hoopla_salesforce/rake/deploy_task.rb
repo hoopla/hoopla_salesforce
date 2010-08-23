@@ -129,6 +129,14 @@ module HooplaSalesforce
         end
       end
 
+      def preprocess_files
+        require template_helper if File.exist?(template_helper)
+
+        Dir["#{processed_src}/**/*.erb"].each do |template|
+          yield template
+        end
+      end
+
       def make_meta(glob)
         Dir["#{processed_src}/#{glob}"].each do |file|
           meta = "#{file}-meta.xml"
@@ -257,6 +265,11 @@ module HooplaSalesforce
         make_pages do |template|
           HooplaSalesforce::TemplateProcessor::VisualForce.new(processed_src, template)
           rm template.sub(src, processed_src)
+        end
+
+        preprocess_files do |template|
+          HooplaSalesforce::TemplateProcessor::Generic.new(processed_src, template)
+          rm template
         end
       end
     end

@@ -1,13 +1,16 @@
-require 'erubis'
+require 'hoopla_salesforce/eruby'
 
 module HooplaSalesforce
   class TemplateProcessor
     class Base
-      attr_reader :src, :base
+      include HooplaSalesforce::CaptureHelper
+
+      attr_reader :src, :base, :file
       def initialize(src, file)
         @src     = src
         @base    = File.basename(file, '.erb')
-        template = Erubis::Eruby.new(File.read(file))
+        @file    = file
+        template = Eruby.new(File.read(file))
 
         File.open(output_file, 'w') do |f|
           f.print template.result(binding)
@@ -19,6 +22,12 @@ module HooplaSalesforce
           file += ".#{extension}" unless extension =~ /\.#{extension}$/
           yield file
         end.join("\n")
+      end
+    end
+
+    class Generic < Base
+      def output_file
+        file.sub(/\.erb$/, '')
       end
     end
 
