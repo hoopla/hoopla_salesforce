@@ -93,20 +93,25 @@ module HooplaSalesforce
       end
 
       def deploy_options
-        testNames = Dir["#{src}/classes/*.cls"].inject([]) do |names, f|
-          body = File.read(f)
-          if body =~ /(testMethod|@isTest)/ && name = extract_class_name(body)
-            names << name
-          else
-            names
-          end
-        end
-
-        if testNames.empty?
-          { "wsdl:runAllTests" => true }
-        else
-          testNames.map! { |n| package_namespace.sub(/__$/, '.') + n } if package_namespace
+        if ENV['TEST_NAMES']
+          testNames = ENV['TEST_NAMES'].split(',')
           { "wsdl:runTests" => testNames }
+        else
+          testNames = Dir["#{src}/classes/*.cls"].inject([]) do |names, f|
+            body = File.read(f)
+            if body =~ /(testMethod|@isTest)/ && name = extract_class_name(body)
+              names << name
+            else
+              names
+            end
+          end
+
+          if testNames.empty?
+            { "wsdl:runAllTests" => true }
+          else
+            testNames.map! { |n| package_namespace.sub(/__$/, '.') + n } if package_namespace
+            { "wsdl:runTests" => testNames }
+          end
         end
       end
 
