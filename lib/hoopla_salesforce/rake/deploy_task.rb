@@ -97,7 +97,7 @@ module HooplaSalesforce
           testNames = ENV['TEST_NAMES'].split(',')
           { "wsdl:runTests" => testNames }
         else
-          testNames = Dir["#{src}/classes/*.cls"].inject([]) do |names, f|
+          testNames = Dir["#{processed_src}/classes/*.cls"].inject([]) do |names, f|
             body = File.read(f)
             if body =~ /(testMethod|@isTest)/ && name = extract_class_name(body)
               names << name
