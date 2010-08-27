@@ -45,7 +45,7 @@ module HooplaSalesforce
       @header = { "wsdl:SessionHeader" => { "wsdl:sessionId" => response[:session_id] } }
     end
 
-    def deploy(zipfile, options)
+    def deploy(zipfile, options = {})
       login
 
       data = Base64.encode64(File.read(zipfile))

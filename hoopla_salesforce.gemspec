@@ -10,6 +10,7 @@ $spec = Gem::Specification.new do |s|
   s.add_dependency("rubyzip",      ">= 0.9.4")
   s.add_dependency('commander',    '>= 4.0.3')
   s.add_dependency('erubis',       '>= 2.6.6')
+  s.add_dependency('mechanize',    '>= 1.0.0')
 
   s.files       = Dir["README.md", "bin/*", "lib/**/*.rb"]
   s.bindir      = 'bin'

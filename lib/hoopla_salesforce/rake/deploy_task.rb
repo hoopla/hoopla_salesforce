@@ -51,6 +51,10 @@ module HooplaSalesforce
         @processed_src     ||= "#{src}-processed" 
       end
 
+      def clean_namespace
+        package_namespace.sub(/__$/, '') if package_namespace
+      end
+
       def define
         if name.is_a? Hash
           task_name = name.keys.first
@@ -92,12 +96,11 @@ module HooplaSalesforce
         end
       end
 
-      def deploy_options
+      def test_names
         if ENV['TEST_NAMES']
-          testNames = ENV['TEST_NAMES'].split(',')
-          { "wsdl:runTests" => testNames }
+          ENV['TEST_NAMES'].split(',')
         else
-          testNames = Dir["#{processed_src}/classes/*.cls"].inject([]) do |names, f|
+          Dir["#{processed_src}/classes/*.cls"].inject([]) do |names, f|
             body = File.read(f)
             if body =~ /(testMethod|@isTest)/ && name = extract_class_name(body)
               names << name
@@ -105,13 +108,15 @@ module HooplaSalesforce
               names
             end
           end
+        end
+      end
 
-          if testNames.empty?
-            { "wsdl:runAllTests" => true }
-          else
-            testNames.map! { |n| package_namespace.sub(/__$/, '.') + n } if package_namespace
-            { "wsdl:runTests" => testNames }
-          end
+      def test_options
+        if test_names.empty?
+          { "wsdl:runAllTests" => true }
+        else
+          test_names.map! { |n| "#{clean_namespace}.#{n}" } if package_namespace
+          { "wsdl:runTests" => testNames }
         end
       end
 
@@ -169,7 +174,7 @@ module HooplaSalesforce
 
         make_meta "documents/**/*" do |doc|
           if File.directory?(doc)
-            <<-EOS.margin
+            m = <<-EOS.margin
               <?xml version="1.0" encoding="UTF-8"?>
               <DocumentFolder xmlns="http://soap.sforce.com/2006/04/metadata">
                 <name>#{File.basename(doc)}</name>
@@ -245,7 +250,14 @@ module HooplaSalesforce
 
       def deploy_zipfile
         require 'hoopla_salesforce/deployer'
-        HooplaSalesforce::Deployer.new(username, password, token, enterprise_wsdl, metadata_wsdl).deploy(deploy_file, deploy_options)
+        deployer = HooplaSalesforce::Deployer.new(username, password, token, enterprise_wsdl, metadata_wsdl)
+        if ENV['WEB_TESTS']
+          require 'hoopla_salesforce/web_agent'
+          deployer.deploy(deploy_file)
+          WebAgent.new(username, password).run_tests(test_names, clean_namespace)
+        else
+          deployer.deploy(deploy_file, test_options)
+        end
       end
 
       def process_source
@@ -257,7 +269,6 @@ module HooplaSalesforce
         end
 
         if package_namespace
-          clean_namespace = package_namespace.sub(/__$/, '')
           system %Q|ruby -i -n -e 'print $_.gsub("#{package_namespace}", "#{clean_namespace}")' "#{processed_src}/package.xml"|
         end
 
