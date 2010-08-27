@@ -79,7 +79,7 @@ Pre-processing with ERB
 
 If you append `.erb` to any file in your project, it will get processed through Erubis prior to deployment. This makes it possible to DRY up a lot of your XML, abstract common patterns and even write simple Apex macros.
 
-Just before the templates are run, the deployer will look for `lib/template_helper.rb` and load that. In this file you can mix your own methods into the template processors. The following example allows you to use `<%= name 'MyObject' %>` in an object definition to avoid writing the XML boilerplate that's required by salesforce.
+Just before the templates are run, the deployer will look for `lib/template_helper.rb` and load that. In this file you can mix your own methods into the template processors. The following example allows you to use `<%= object 'MyObject' %>` in an object file to avoid writing the XML boilerplate that's required by salesforce.
 
     module GenericHelper
       def object(&block)
