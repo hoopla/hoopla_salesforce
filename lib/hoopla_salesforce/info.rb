@@ -13,7 +13,7 @@ module HooplaSalesforce
     end
 
     def version
-      "0.0.4.a"
+      "0.0.5.a"
     end
   end
 end
