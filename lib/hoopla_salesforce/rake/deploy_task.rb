@@ -112,11 +112,9 @@ module HooplaSalesforce
       end
 
       def test_options
-        if test_names.empty?
-          { "wsdl:runAllTests" => true }
-        else
+        unless test_names.empty?
           test_names.map! { |n| "#{clean_namespace}.#{n}" } if package_namespace
-          { "wsdl:runTests" => testNames }
+          { "wsdl:runTests" => test_names }
         end
       end
 
