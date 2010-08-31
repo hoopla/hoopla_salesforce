@@ -60,10 +60,13 @@ module HooplaSalesforce
    
       puts "Deployment requested, awaiting completion of job #{response[:id]}..." 
       while !response[:done]
-        response = metaclient.check_status do |soap, wsse|
-          soap.header = header
-          soap.body = { "wsdl:asyncProcessId" => response[:id] }
-        end.to_hash[:check_status_response][:result]
+        begin
+          response = metaclient.check_status do |soap, wsse|
+            soap.header = header
+            soap.body = { "wsdl:asyncProcessId" => response[:id] }
+          end.to_hash[:check_status_response][:result]
+        rescue Timeout::Error
+        end
       end 
 
       response = metaclient.check_deploy_status do |soap, wsse|
