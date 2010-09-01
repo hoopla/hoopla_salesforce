@@ -19,6 +19,7 @@ module HooplaSalesforce
 
       def each_resource_file(files, extension)
         files.map do |file|
+          # FIXME, this added .js on a .js file
           file += ".#{extension}" unless extension =~ /\.#{extension}$/
           yield file
         end.join("\n")
