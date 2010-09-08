@@ -7,6 +7,8 @@ Savon::Request.logger.level = Logger::WARN
 Savon::Request.log_level = :debug
 
 module HooplaSalesforce
+  # Deploys and retreives zip files from salesforce using the metadata API.
+  # Use ENV['LOGIN_HOST'] = 'test.salesforce.com' to use this on sandbox organizations.
   class Deployer
     attr_accessor :client, :metaclient, :header,
                   :username, :password, :token
@@ -31,11 +33,13 @@ module HooplaSalesforce
     end
 
     def set_certs
-      # TODO figure out how to get Savon to validat SF's cert
+      # TODO figure out how to get Savon to validate SF's cert
       [@client, @metaclient].each { |c| c.request.http.ssl_client_auth(:verify_mode => OpenSSL::SSL::VERIFY_NONE) }
     end
 
     def setup_metaclient_and_store_header
+      client.wsdl.soap_endpoint.host = ENV['LOGIN_HOST'] if ENV['LOGIN_HOST']
+
       response = client.login do |soap, wsse|
         soap.body = { "wsdl:username" => username, "wsdl:password" => password + token}
       end.to_hash[:login_response][:result]
