@@ -4,12 +4,17 @@ module HooplaSalesforce
   module Rake
     class RetrieveTask < BaseTask
       # The format of the retrieve request. Defaults to:
-      #   { "wsdl:unpackaged" => { "wsdl:types" =>
-      #     [{ "wsdl:members" => "*", "wsdl:name" => "ApexClass" }]
-      #   }}
+      #   { "wsdl:apiVersion" => "18.0",
+      #     "wsdl:unpackaged" => { "wsdl:types" =>
+      #       [{ "wsdl:members" => "*", "wsdl:name" => "ApexClass" }]
+      #     }
+      #   }
       #
       # If your code is in a salesforce package, you can specify:
       #   { "wsdl:packageNames" => ["Your Package Name"] }
+      #
+      # NOTE: Some components will only be available in higher API versions, so
+      #       make sure to set your apiVersion accordingly.
       attr_accessor :request
 
       def initialize(name=:retrieve)
