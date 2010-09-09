@@ -35,18 +35,18 @@ Just run:
 
 This will create an folder called myproject that looks like this:
 
-    - myproject 
-    |- Rakefile
-    |- lib/
-    \- src/
-     |- applications/
-     |- classes/
-     |- objects/
-     |- pages/
-     |- resources/
-     |- tabs/
-     |- triggers/
-     \- package.xml 
+    myproject/
+    ├── lib
+    ├── Rakefile
+    └── src
+        ├── applications
+        ├── classes
+        ├── objects
+        ├── package.xml
+        ├── pages
+        ├── resources
+        ├── tabs
+        └── triggers
 
 Once this is done, drop the enterprise.xml and metadata.xml for your org into `lib/` and update the `Rakefile` to reflect your username, password and security token. Now your project is ready to deploy. Run `rake -T` to show the available rake tasks.
 
