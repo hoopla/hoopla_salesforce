@@ -81,7 +81,7 @@ If you append `.erb` to any file in your project, it will get processed through 
 
 Just before the templates are run, the deployer will look for `lib/template_helper.rb` and load that. In this file you can mix your own methods into the template processors. The following example allows you to use `<%= object do %>...<% end %>` in an object file to avoid writing the XML boilerplate that's required by salesforce.
 
-    module GenericHelper
+    class HooplaSalesforce::TemplateProcessor::Generic
       def object(&block)
         code = <<-XML.margin
           <?xml version="1.0" encoding="UTF-8"?>
@@ -93,9 +93,8 @@ Just before the templates are run, the deployer will look for `lib/template_help
         XML
       end
     end
-    HooplaSalesforce::TemplateProcessor::Generic.send(:include, GenericHelper)
 
-Note that you must currently mix your module into the processors at the bottom of the file. The currently available processors are:
+The currently available processors are:
 
 * `HooplaSalesforce::TemplateProcessor::VisualForce` - used for processing page files
 * `HooplaSalesforce::TemplateProcessor::TestPage` - used for generating static test pages
