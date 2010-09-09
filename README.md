@@ -14,7 +14,7 @@ Features
 6. Undeploys your project (destructiveChanges.xml is auto-generated)
 7. Pre-processes any VisualForce or Apex files with ERB
 8. Generates static test pages from VisualForce pages
-9. Runs tests via the Web UI (as results often differ from deploy tests)
+9. Runs tests via the Web UI (as results often differ from deploy tests) [experimental]
 10. Makes pancakes (pending)
 
 Usage
@@ -65,7 +65,7 @@ During deployment, we'll generate any missing meta.xml files for your assets. Th
 Autopackaging of static resources
 ---------------------------------
 
-As part of deployment, any folders in src/resources will get zipped up as static resources. So for example if you had a folder `src/resources/Performance` the contents of this folder will get zipped into `src/static/resources/Performance.resource`. This makes dealing with zipped CSS/JavaScript much easier.
+As part of deployment, any folders in src/resources will get zipped up as static resources. So for example if you had a folder `src/resources/Performance` the contents of this folder will get zipped into `src/staticresources/Performance.resource`. This makes dealing with zipped CSS/JavaScript much easier.
 
 Undeploying your project
 ------------------------
@@ -79,7 +79,7 @@ Pre-processing with ERB
 
 If you append `.erb` to any file in your project, it will get processed through Erubis prior to deployment. This makes it possible to DRY up a lot of your XML, abstract common patterns and even write simple Apex macros.
 
-Just before the templates are run, the deployer will look for `lib/template_helper.rb` and load that. In this file you can mix your own methods into the template processors. The following example allows you to use `<%= object 'MyObject' %>` in an object file to avoid writing the XML boilerplate that's required by salesforce.
+Just before the templates are run, the deployer will look for `lib/template_helper.rb` and load that. In this file you can mix your own methods into the template processors. The following example allows you to use `<%= object do %>...<% end %>` in an object file to avoid writing the XML boilerplate that's required by salesforce.
 
     module GenericHelper
       def object(&block)
@@ -101,14 +101,20 @@ Note that you must currently mix your module into the processors at the bottom o
 * `HooplaSalesforce::TemplateProcessor::TestPage` - used for generating static test pages
 * `HooplaSalesforce::TemplateProcessor::Generic` - used for any other files
 
+We'll probably start packaging a large set of default helpers with the gem once we have enough projects to demonstrate which helpers should be considered core. If you have recommendations feel free to contact us.
+
 Generating Static Test Pages
 ----------------------------
 
-(documentation pending)
+We can also generate static test pages from your Visual Force pages by using:
+
+    rake hsf:testpages
+
+This makes a `src/pages-test` folder which contains HTML versions of your VisualForce pages. We find this a useful way to do styling and client-side testing. At the moment we only support a few helpers which can generate equivalent VisualForce and HTML, but you can use the template helper technique from the previous section to make more for yourself. The currently implemented helpers are in (template_processor.rb)[http://github.com/hoopla/hoopla_salesforce/blob/master/lib/hoopla_salesforce/template_processor.rb].
 
 Running tests
 -------------
 
 Use WEB_TEST=true to run via web ui. Default will run during deployment. Use TEST_NAMES=Test1,Test2,etc to run specific tests (or TEST_NAMES="" to skip tests).
 
-(more documentation pending)
+(more documentation pending, this feature is still experimental)
