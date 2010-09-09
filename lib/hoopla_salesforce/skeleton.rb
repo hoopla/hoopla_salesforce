@@ -86,13 +86,11 @@ module HooplaSalesforce
           HooplaSalesforce.enterprise_wsdl = "lib/enterprise.xml"
           HooplaSalesforce.metadata_wsdl   = "lib/metadata.xml"
           
-          namespace :deploy do
-            HooplaSalesforce::Rake::DeployTask.new(:development) do |t|
-              t.username  = "you@development.org"
-              t.password  = "yourpassword"
-              t.token     = "your security token"
-              t.namespace = "" 
-            end
+          HooplaSalesforce::Rake::DeployTask.new(:development) do |t|
+            t.username  = "you@development.org"
+            t.password  = "yourpassword"
+            t.token     = "your security token"
+            t.namespace = "" 
           end
         EOS
       end
