@@ -86,11 +86,13 @@ module HooplaSalesforce
             end
           end
 
-          desc "Renders any page templates as test pages in #{processed_src}/pages-test"
-          task :testpages => dependencies do
-            mkdir_p "#{src}/pages-test"
-            make_pages do |template|
-              HooplaSalesforce::TemplateProcessor::TestPage.new(src, template)
+          namespace :testpages do
+            desc "Renders any page templates as test pages in #{processed_src}/pages-test"
+            task task_name => dependencies do
+              mkdir_p "#{src}/pages-test"
+              make_pages do |template|
+                HooplaSalesforce::TemplateProcessor::TestPage.new(src, template)
+              end
             end
           end
         end
