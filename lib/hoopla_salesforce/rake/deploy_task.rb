@@ -260,9 +260,7 @@ module HooplaSalesforce
         end
       end
 
-      def process_source
-        rm_rf processed_src
-        cp_r src, processed_src
+      def substitute_namespaces
         Dir["#{processed_src}/**/*"].each do |f|
           next if File.directory?(f)
           system %Q|ruby -i -n -e 'print $_.gsub("__NAMESPACE__", "#{package_namespace}")' "#{f}"|
@@ -271,7 +269,11 @@ module HooplaSalesforce
         if package_namespace
           system %Q|ruby -i -n -e 'print $_.gsub("#{package_namespace}", "#{clean_namespace}")' "#{processed_src}/package.xml"|
         end
+      end
 
+      def process_source
+        rm_rf processed_src
+        cp_r src, processed_src
         make_resources
         make_pages do |template|
           HooplaSalesforce::TemplateProcessor::VisualForce.new(processed_src, template)
@@ -282,6 +284,8 @@ module HooplaSalesforce
           HooplaSalesforce::TemplateProcessor::Generic.new(processed_src, template)
           rm template
         end
+
+        substitute_namespaces
       end
     end
   end
