@@ -1,7 +1,7 @@
 hoopla_salesforce
 =================
 
-A nitfy bundle of dev and deployment tools for working on the (Sales)force.com platform.
+A nifty bundle of dev and deployment tools for working on the (Sales)force.com platform.
 
 Features
 ========
